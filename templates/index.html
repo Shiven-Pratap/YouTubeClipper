@@ -9,6 +9,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
         rel="stylesheet">
+
 </head>
 
 <body>
@@ -20,37 +21,46 @@
     </nav>
     <div class="main">
         <h2>Welcome To Youtube video downloader</h2>
-        <div class="container">
-            <div class="pastelink">
-                <label for="url"></label>
-                <input id="url" type="text" name="url" placeholder="Paste your URL" required>
+        <div id="kkk">
+            <div class="data">
             </div>
-            <div class="timings">
-                <span>
-                    <label for="startTIME"></label>
-                    <input id="startTIME" type="text" name="startTIME" placeholder="00:00:00" required value="00:00:00">
-                </span>
-                <span>to</span>
-                <span>
-                    <label for="endTIME"></label>
-                    <input id="endTIME" type="text" name="endTIME" placeholder="00:00:00" required value="00:00:00">
-                </span>
+            <div class="container">
+                <div class="pastelink">
+                    <label for="url"></label>
+                    <input id="url" type="text" name="url" placeholder="Paste your URL" required>
+                </div>
+                <div class="timings">
+                    <span>
+                        <label for="startTIME"></label>
+                        <input id="startTIME" type="text" name="startTIME" placeholder="00:00:00" required
+                            value="00:00:00">
+                    </span>
+                    <span>to</span>
+                    <span>
+                        <label for="endTIME"></label>
+                        <input id="endTIME" type="text" name="endTIME" placeholder="00:00:00" required value="00:00:05">
+                    </span>
+                </div>
+                <div class="quality-cards">
+                    <div class="quality-card" data-quality="1080p">1080p</div>
+                    <div class="quality-card selected" data-quality="720p">720p</div>
+                    <div class="quality-card" data-quality="480p">480p</div>
+                    <div class="quality-card" data-quality="360p">360p</div>
+                </div>
+                <!-- <button class="btn">Download</button> -->
+                <button class="btn" id="downloadBtn">
+                    <span id="btnText">Download</span>
+                    <div class="loader" id="spinner"></div>
+                </button>
             </div>
-            <div class="quality-cards">
-                <div class="quality-card" data-quality="1080p">1080p</div>
-                <div class="quality-card selected" data-quality="720p">720p</div>
-                <div class="quality-card" data-quality="480p">480p</div>
-                <div class="quality-card" data-quality="360p">360p</div>
+            <div class="embed">
             </div>
-            <!-- <button class="btn">Download</button> -->
-             <button class="btn" id="downloadBtn">
-                <span id="btnText">Download</span>
-                <div class="loader" id="spinner"></div>
-            </button>
+
         </div>
     </div>
 </body>
 <script src="{{ url_for('static', filename='script.js') }}"></script>
+
 
 
 </html>
