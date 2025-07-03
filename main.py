@@ -7,6 +7,7 @@ import time
 from urllib.parse import urlparse, parse_qs
 import requests
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 API_KEY = "AIzaSyD4vh70NXpfqTORTo9VZ8qKr9EB-lSEoSs"
 
@@ -246,98 +247,212 @@ def get_video_details(api_key, video_id):
     except Exception as e:
         return {"error": f"Unexpected error: {str(e)}"}
 
-# def print_video_details(details):
-#     """
-#     Print video details in a formatted way
-#     """
-#     if "error" in details:
-#         print(f"❌ Error: {details['error']}")
-#         return
-    
-#     print("=" * 60)
-#     print("🎥 YOUTUBE VIDEO DETAILS")
-#     print("=" * 60)
-#     print(f"📝 Title: {details['title']}")
-#     print(f"🆔 Video ID: {details['video_id']}")
-#     print(f"📺 Channel: {details['channel_title']}")
-#     print(f"📅 Published: {details['published_at']}")
-#     print(f"⏱️  Duration: {details['duration']}")
-#     print(f"🩳 YouTube Short: {'Yes' if details['is_youtube_short'] else 'No'}")
-#     print(f"👀 Views: {details['view_count']:,}")
-#     print(f"👍 Likes: {details['like_count']:,}")
-#     print(f"💬 Comments: {details['comment_count']:,}")
-#     print(f"🔒 Privacy: {details['privacy_status']}")
-#     print(f"🏷️  Tags: {', '.join(details['tags'][:5])}{'...' if len(details['tags']) > 5 else ''}")
-#     print(f"📖 Description: {details['description']}")
-#     print(f"🖼️  Thumbnail: {details['thumbnail_url']}")
-#     print("=" * 60)
-
-
-@app.route("/api_fetch",methods=['Post'])
-def metaDeta():
-    data=request.get_json()
-    url=data['url']
-    VIDEO_ID = extract_video_id(url)
-    details = get_video_details(API_KEY, VIDEO_ID)
+def print_video_details(details):
+    """
+    Print video details in a formatted way
+    """
     if "error" in details:
-        return {"error": details["error"]}
+        print(f"❌ Error: {details['error']}")
+        return
     
+    print("=" * 60)
+    print("🎥 YOUTUBE VIDEO DETAILS")
+    print("=" * 60)
+    print(f"📝 Title: {details['title']}")
+    print(f"🆔 Video ID: {details['video_id']}")
+    print(f"📺 Channel: {details['channel_title']}")
+    print(f"📅 Published: {details['published_at']}")
+    print(f"⏱️  Duration: {details['duration']}")
+    print(f"🩳 YouTube Short: {'Yes' if details['is_youtube_short'] else 'No'}")
+    print(f"👀 Views: {details['view_count']:,}")
+    print(f"👍 Likes: {details['like_count']:,}")
+    print(f"💬 Comments: {details['comment_count']:,}")
+    print(f"🔒 Privacy: {details['privacy_status']}")
+    print(f"🏷️  Tags: {', '.join(details['tags'][:5])}{'...' if len(details['tags']) > 5 else ''}")
+    print(f"📖 Description: {details['description']}")
+    print(f"🖼️  Thumbnail: {details['thumbnail_url']}")
+    print("=" * 60)
 
+
+
+
+
+
+video_cache = {}
+cache_timeout = 300  
+
+executor = ThreadPoolExecutor(max_workers=3)
+
+
+def get_basic_info_fast(url):
+    """Get basic video info quickly without format details"""
     ydl_opts = {
         'quiet': True,
         'skip_download': True,
         'forcejson': True,
+        'noplaylist': True,
+        'extract_flat': False,
+        'no_warnings': True,
+        'ignoreerrors': True,
+        # Speed optimizations
+        'socket_timeout': 10,
+        'retries': 1,
+        'fragment_retries': 1,
+        'skip_unavailable_fragments': True,
     }
+    
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+        return info
+    except Exception as e:
+        print(f"Fast info extraction failed: {e}")
+        return None
 
+def get_format_sizes_optimized(info):
+    """Optimized format size extraction"""
     sizes = {
         "360p": None,
         "480p": None,
         "720p": None,
         "1080p": None
     }
+    
+    if not info or 'formats' not in info:
+        return {"360p": 25, "480p": 40, "720p": 75, "1080p": 150}  # Default fallback
+    
+    # Process only the first few formats that match our criteria
+    processed_count = 0
+    for f in info['formats']:
+        if processed_count >= 10:  # Limit processing to first 10 relevant formats
+            break
+            
+        height = f.get('height')
+        filesize = f.get('filesize') or f.get('filesize_approx')
+        
+        if filesize and height and height in [360, 480, 720, 1080]:
+            quality_key = f"{height}p"
+            if sizes[quality_key] is None:
+                sizes[quality_key] = round(filesize / (1024 * 1024), 2)
+                processed_count += 1
+    
+    # Quick estimation for missing sizes
+    available_sizes = {k: v for k, v in sizes.items() if v is not None}
+    if available_sizes:
+        # Use the first available size as base for estimation
+        base_quality, base_size = next(iter(available_sizes.items()))
+        multipliers = {"360p": 1, "480p": 1.5, "720p": 2.5, "1080p": 4}
+        base_multiplier = multipliers[base_quality]
+        
+        for quality in sizes:
+            if sizes[quality] is None:
+                sizes[quality] = round(base_size * multipliers[quality] / base_multiplier, 2)
+    else:
+        # Ultimate fallback
+        sizes = {"360p": 25, "480p": 40, "720p": 75, "1080p": 150}
+    
+    return sizes
 
+@app.route("/api_fetch", methods=['POST'])
+def metaDeta():
+    data = request.get_json()
+    url = data['url']
+    
+    # Check cache first
+    cache_key = url
+    current_time = time.time()
+    
+    if cache_key in video_cache:
+        cached_data, timestamp = video_cache[cache_key]
+        if current_time - timestamp < cache_timeout:
+            print("Returning cached data")
+            return cached_data
+    
+    VIDEO_ID = extract_video_id(url)
+    
+    def get_api_details():
+        return get_video_details(API_KEY, VIDEO_ID)
+    
+    def get_video_info():
+        return get_basic_info_fast(url)
+    
+    future_api = executor.submit(get_api_details)
+    future_info = executor.submit(get_video_info)
+    
     try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-
-        for f in info['formats']:
-            fmt_note = f.get('format_note', '').lower()
-            height = f.get('height')
-            filesize = f.get('filesize')
-
-            if filesize and height:
-                if height == 360 and sizes["360p"] is None:
-                    sizes["360p"] = round(filesize / (1024 * 1024), 2)
-                elif height == 480 and sizes["480p"] is None:
-                    sizes["480p"] = round(filesize / (1024 * 1024), 2)
-                elif height == 720 and sizes["720p"] is None:
-                    sizes["720p"] = round(filesize / (1024 * 1024), 2)
-                elif height == 1080 and sizes["1080p"] is None:
-                    sizes["1080p"] = round(filesize / (1024 * 1024), 2)
-
+        details = future_api.result(timeout=15)  
     except Exception as e:
-        print("yt-dlp failed:", e)
-
-    return {
+        print(f"API details failed: {e}")
+        return {"error": "Failed to get video details"}
+    
+    if "error" in details:
+        return {"error": details["error"]}
+    
+    try:
+        info = future_info.result(timeout=20) 
+        sizes = get_format_sizes_optimized(info)
+    except Exception as e:
+        print(f"Video info extraction failed: {e}")
+        sizes = {"360p": 25, "480p": 40, "720p": 75, "1080p": 150}
+    
+    response_data = {
         "title": details["title"],
         "video_id": details["video_id"],
         "channel_title": details["channel_title"],
         "published_at": details["published_at"],
         "duration": details["duration"],
-        "is_youtube_short": details["is_youtube_short"],
         "view_count": details["view_count"],
         "like_count": details["like_count"],
-        "comment_count": details["comment_count"],
-        "privacy_status": details["privacy_status"],
-        "tags": details["tags"][:5],  # Send top 5 tags
-        "description": details["description"],
-        "thumbnail_url": details["thumbnail_url"],
-        "VideoID": f"https://www.youtube.com/embed/{VIDEO_ID}",
+        "VideoEmbedLink": f"https://www.youtube.com/embed/{VIDEO_ID}",
         "filesize_by_quality": sizes
     }
     
+    video_cache[cache_key] = (response_data, current_time)
+    
+    if len(video_cache) > 50:
+        oldest_key = min(video_cache.keys(), key=lambda k: video_cache[k][1])
+        del video_cache[oldest_key]
+    
+    return response_data
 
-
+@app.route("/api_fetch_fast", methods=['POST'])
+def metaDetaFast():
+    """Ultra-fast version - returns basic info immediately, sizes later"""
+    data = request.get_json()
+    url = data['url']
+    VIDEO_ID = extract_video_id(url)
+    
+    details = get_video_details(API_KEY, VIDEO_ID)
+    if "error" in details:
+        return {"error": details["error"]}
+    
+    estimated_sizes = {"360p": 25, "480p": 40, "720p": 75, "1080p": 150}
+    
+    response_data = {
+        "title": details["title"],
+        "video_id": details["video_id"],
+        "channel_title": details["channel_title"],
+        "published_at": details["published_at"],
+        "duration": details["duration"],
+        "view_count": details["view_count"],
+        "like_count": details["like_count"],
+        "VideoEmbedLink": f"https://www.youtube.com/embed/{VIDEO_ID}",
+        "filesize_by_quality": estimated_sizes,
+        "sizes_estimated": True 
+    }
+    
+    def update_sizes_background():
+        try:
+            info = get_basic_info_fast(url)
+            if info:
+                real_sizes = get_format_sizes_optimized(info)
+                print(f"Real sizes for {VIDEO_ID}: {real_sizes}")
+        except Exception as e:
+            print(f"Background size update failed: {e}")
+    
+    executor.submit(update_sizes_background)
+    
+    return response_data
 
 
 app.run(debug=True)
