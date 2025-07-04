@@ -142,32 +142,33 @@ function estimateClippedSize(startTime, endTime, fullDurationSec, fullSizeMB) {
     console.log(proportion)
     console.log(estimatedSize)
 
-    return estimatedSize.toFixed(2); 
+    return estimatedSize.toFixed(2);
+}////// check here cahngeeeee
 
-function timeStrToSeconds(timeStr) {
-    const parts = timeStr.split(':').map(Number);
-    if (parts.length === 3) {
-        return parts[0] * 3600 + parts[1] * 60 + parts[2];
-    } else if (parts.length === 2) {
-        return parts[0] * 60 + parts[1];
-    } else if (parts.length === 1) {
-        return parts[0];
+    function timeStrToSeconds(timeStr) {
+        const parts = timeStr.split(':').map(Number);
+        if (parts.length === 3) {
+            return parts[0] * 3600 + parts[1] * 60 + parts[2];
+        } else if (parts.length === 2) {
+            return parts[0] * 60 + parts[1];
+        } else if (parts.length === 1) {
+            return parts[0];
+        }
+        return 0;
     }
-    return 0;
-}
 
 
 
 
 
-let urlPaste = document.getElementById('url');
+    let urlPaste = document.getElementById('url');
 
-function showLoading() {
-    const loadingDiv = document.createElement('div');
-    loadingDiv.id = 'loading-indicator';
-    loadingDiv.style.opacity = '0';
-    loadingDiv.style.transition = 'opacity 0.3s ease-in';
-    loadingDiv.innerHTML = `
+    function showLoading() {
+        const loadingDiv = document.createElement('div');
+        loadingDiv.id = 'loading-indicator';
+        loadingDiv.style.opacity = '0';
+        loadingDiv.style.transition = 'opacity 0.3s ease-in';
+        loadingDiv.innerHTML = `
         <div style="text-align: center; padding: 20px;">
             <div style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 2s linear infinite; margin: 0 auto;"></div>
             <p style="margin-top: 10px; color: #666;">Loading video data...</p>
@@ -187,128 +188,129 @@ function showLoading() {
         </style>
     `;
 
-    const embedPosition = document.getElementsByClassName('embed')[0];
-    if (embedPosition) {
-        embedPosition.innerHTML = '';
-        embedPosition.appendChild(loadingDiv);
+        const embedPosition = document.getElementsByClassName('embed')[0];
+        if (embedPosition) {
+            embedPosition.innerHTML = '';
+            embedPosition.appendChild(loadingDiv);
 
-        // Fade in the loading indicator
-        setTimeout(() => {
-            loadingDiv.style.opacity = '1';
-        }, 10);
-    }
-}
-
-function hideLoading() {
-    const loadingDiv = document.getElementById('loading-indicator');
-    if (loadingDiv) {
-        loadingDiv.style.transition = 'opacity 0.3s ease-out';
-        loadingDiv.style.opacity = '0';
-        setTimeout(() => {
-            loadingDiv.remove();
-        }, 300);
-    }
-}
-
-async function fetchWithTimeout(url, options, timeout = 30000) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-    try {
-        const response = await fetch(url, {
-            ...options,
-            signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-        return response;
-    } catch (error) {
-        clearTimeout(timeoutId);
-        throw error;
-    }
-}
-
-urlPaste.addEventListener('paste', function (e) {
-    setTimeout(async () => {
-        let input_url = urlPaste.value;
-        console.log("Pasted URL:", input_url);
-
-        const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-        if (!youtubeRegex.test(input_url)) {
-            alert("Please enter a valid YouTube URL.");
+            // Fade in the loading indicator
             setTimeout(() => {
-                location.reload();
-            }, 50);
-            return;
+                loadingDiv.style.opacity = '1';
+            }, 10);
         }
+    }
 
-        showLoading();
+    function hideLoading() {
+        const loadingDiv = document.getElementById('loading-indicator');
+        if (loadingDiv) {
+            loadingDiv.style.transition = 'opacity 0.3s ease-out';
+            loadingDiv.style.opacity = '0';
+            setTimeout(() => {
+                loadingDiv.remove();
+            }, 300);
+        }
+    }
+
+    async function fetchWithTimeout(url, options, timeout = 30000) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
 
         try {
-            let endpoint = '/api_fetch_fast';
-            let response;
+            const response = await fetch(url, {
+                ...options,
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            return response;
+        } catch (error) {
+            clearTimeout(timeoutId);
+            throw error;
+        }
+    }
 
-            try {
-                response = await fetchWithTimeout(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ url: input_url })
-                }, 10000); // 10 second timeout for fast endpoint
-            } catch (fastError) {
-                console.log("Fast endpoint failed, trying regular endpoint");
-                // Fallback to regular endpoint
-                endpoint = '/api_fetch';
-                response = await fetchWithTimeout(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ url: input_url })
-                }, 30000); // 30 second timeout for regular endpoint
-            }
+    
+    urlPaste.addEventListener('paste', function (e) {
+        setTimeout(async () => {
+            let input_url = urlPaste.value;
+            console.log("Pasted URL:", input_url);
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            if (data.error) {
-                alert("Error: " + data.error);
-                hideLoading();
+            const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+            if (!youtubeRegex.test(input_url)) {
+                alert("Please enter a valid YouTube URL.");
+                setTimeout(() => {
+                    location.reload();
+                }, 50);
                 return;
             }
 
-            // Store global variables (keeping your original structure)
-            videoID = data['VideoEmbedLink'];
-            video_title = data.title;
-            Channel = data.channel_title;
-            published_at = data["published_at"];
-            duration = data["duration"];
-            view_count = data["view_count"];
-            like_count = data["like_count"];
-            video_size = data['filesize_by_quality'];
+            showLoading();
 
-            // Get selected quality (assuming you have quality selection)
-            const selectedCard = document.querySelector('.quality-card.selected') ||
-                document.querySelector('.quality-card[data-quality="720p"]') ||
-                document.querySelector('.quality-card');
+            try {
+                let endpoint = '/api_fetch_fast';
+                let response;
 
-            const current_quality_size = selectedCard ?
-                video_size[selectedCard.dataset.quality] : video_size['720p'];
+                try {
+                    response = await fetchWithTimeout(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ url: input_url })
+                    }, 10000); // 10 second timeout for fast endpoint
+                } catch (fastError) {
+                    console.log("Fast endpoint failed, trying regular endpoint");
+                    // Fallback to regular endpoint
+                    endpoint = '/api_fetch';
+                    response = await fetchWithTimeout(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ url: input_url })
+                    }, 30000); // 30 second timeout for regular endpoint
+                }
 
-            duration_in_sec = timeStrToSeconds(duration);
-            let start_time = document.getElementById('startTIME').value;
-            let end_time = document.getElementById('endTIME').value;
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
-            current_size = estimateClippedSize(start_time, end_time, duration_in_sec, current_quality_size);
+                const data = await response.json();
 
-            // Create embed and metadata (keeping your original structure)
-            embedCode = `<iframe width="370" height="250" src="${videoID}" frameborder="0"
+                if (data.error) {
+                    alert("Error: " + data.error);
+                    hideLoading();
+                    return;
+                }
+
+                // Store global variables (keeping your original structure)
+                videoID = data['VideoEmbedLink'];
+                video_title = data.title;
+                Channel = data.channel_title;
+                published_at = data["published_at"];
+                duration = data["duration"];
+                view_count = data["view_count"];
+                like_count = data["like_count"];
+                video_size = data['filesize_by_quality'];
+
+                // Get selected quality (assuming you have quality selection)
+                const selectedCard = document.querySelector('.quality-card.selected') ||
+                    document.querySelector('.quality-card[data-quality="720p"]') ||
+                    document.querySelector('.quality-card');
+
+                const current_quality_size = selectedCard ?
+                    video_size[selectedCard.dataset.quality] : video_size['720p'];
+
+                duration_in_sec = timeStrToSeconds(duration);
+                let start_time = document.getElementById('startTIME').value;
+                let end_time = document.getElementById('endTIME').value;
+
+                current_size = estimateClippedSize(start_time, end_time, duration_in_sec, current_quality_size);
+
+                // Create embed and metadata (keeping your original structure)
+                embedCode = `<iframe width="370" height="250" src="${videoID}" frameborder="0"
                 allowfullscreen style="border-radius: 20px;"> </iframe>`;
 
-            metaDetaCode = `<div class="title">
+                metaDetaCode = `<div class="title">
                 <p>${video_title.length > 35 ? video_title.substring(0, 35) + "..." : video_title}</p>
             </div>
             <div class="channel">
@@ -322,96 +324,95 @@ urlPaste.addEventListener('paste', function (e) {
                 <p>${current_size}MB</p>
             </div>`;
 
-            hideLoading();
+                hideLoading();
 
-            embedPosition = document.getElementsByClassName('data')[0];
-            metaDetaPosition = document.getElementsByClassName('embed')[0];
+                embedPosition = document.getElementsByClassName('data')[0];
+                metaDetaPosition = document.getElementsByClassName('embed')[0];
 
-            // Smooth simultaneous animation
-            if (embedPosition && metaDetaPosition) {
-                // Set initial state - hidden
-                embedPosition.style.opacity = '0';
-                embedPosition.style.transform = 'translateY(20px)';
-                metaDetaPosition.style.opacity = '0';
-                metaDetaPosition.style.transform = 'translateY(20px)';
+                // Smooth simultaneous animation
+                if (embedPosition && metaDetaPosition) {
+                    // Set initial state - hidden
+                    embedPosition.style.opacity = '0';
+                    embedPosition.style.transform = 'translateY(20px)';
+                    metaDetaPosition.style.opacity = '0';
+                    metaDetaPosition.style.transform = 'translateY(20px)';
 
-                // Add CSS transitions
-                embedPosition.style.transition = 'all 0.5s ease-out';
-                metaDetaPosition.style.transition = 'all 0.5s ease-out';
+                    // Add CSS transitions
+                    embedPosition.style.transition = 'all 0.5s ease-out';
+                    metaDetaPosition.style.transition = 'all 0.5s ease-out';
 
-                // Set content immediately
-                embedPosition.innerHTML = metaDetaCode;
-                metaDetaPosition.innerHTML = embedCode;
+                    // Set content immediately
+                    embedPosition.innerHTML = metaDetaCode;
+                    metaDetaPosition.innerHTML = embedCode;
 
-                // Trigger smooth animation after a tiny delay
-                setTimeout(() => {
-                    embedPosition.style.opacity = '1';
-                    embedPosition.style.transform = 'translateY(0)';
-                    metaDetaPosition.style.opacity = '1';
-                    metaDetaPosition.style.transform = 'translateY(0)';
-                }, 50);
+                    // Trigger smooth animation after a tiny delay
+                    setTimeout(() => {
+                        embedPosition.style.opacity = '1';
+                        embedPosition.style.transform = 'translateY(0)';
+                        metaDetaPosition.style.opacity = '1';
+                        metaDetaPosition.style.transform = 'translateY(0)';
+                    }, 50);
+                }
+
+                // If sizes were estimated, show a note
+                if (data.sizes_estimated) {
+                    console.log("Sizes are estimated, real sizes will be calculated in background");
+                    // You could add a small indicator here
+                }
+
+            } catch (error) {
+                console.error('Fetch error:', error);
+                hideLoading();
+
+                if (error.name === 'AbortError') {
+                    alert("Request timed out. Please try again.");
+                } else {
+                    alert("Error loading video data: " + error.message);
+                }
             }
+        }, 10);
+    });
 
-            // If sizes were estimated, show a note
-            if (data.sizes_estimated) {
-                console.log("Sizes are estimated, real sizes will be calculated in background");
-                // You could add a small indicator here
-            }
-
-        } catch (error) {
-            console.error('Fetch error:', error);
-            hideLoading();
-
-            if (error.name === 'AbortError') {
-                alert("Request timed out. Please try again.");
-            } else {
-                alert("Error loading video data: " + error.message);
-            }
+    function timeStrToSeconds(timeStr) {
+        if (!timeStr) return 0;
+        const parts = timeStr.split(':').map(Number);
+        if (parts.length === 3) {
+            return parts[0] * 3600 + parts[1] * 60 + parts[2];
+        } else if (parts.length === 2) {
+            return parts[0] * 60 + parts[1];
         }
-    }, 10);
-});
-
-function timeStrToSeconds(timeStr) {
-    if (!timeStr) return 0;
-    const parts = timeStr.split(':').map(Number);
-    if (parts.length === 3) {
-        return parts[0] * 3600 + parts[1] * 60 + parts[2];
-    } else if (parts.length === 2) {
-        return parts[0] * 60 + parts[1];
-    }
-    return parts[0] || 0;
-}
-
-function estimateClippedSize(start_time, end_time, duration_in_sec, current_quality_size) {
-    if (!start_time || !end_time || !duration_in_sec || !current_quality_size) {
-        return current_quality_size || 0;
+        return parts[0] || 0;
     }
 
-    const startSec = timeStrToSeconds(start_time);
-    const endSec = timeStrToSeconds(end_time);
-
-    if (startSec >= endSec) return current_quality_size;
-
-    const clipDuration = endSec - startSec;
-    const ratio = clipDuration / duration_in_sec;
-
-    return Math.round(current_quality_size * ratio * 100) / 100;
-}
-
-// Preload optimization - prefetch when user starts typing
-let typingTimer;
-urlPaste.addEventListener('input', function () {
-    clearTimeout(typingTimer);
-    typingTimer = setTimeout(() => {
-        const url = urlPaste.value.trim();
-        const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-
-        if (youtubeRegex.test(url)) {
-            // Prefetch DNS resolution
-            const link = document.createElement('link');
-            link.rel = 'dns-prefetch';
-            link.href = '//www.youtube.com';
-            document.head.appendChild(link);
+    function estimateClippedSize(start_time, end_time, duration_in_sec, current_quality_size) {
+        if (!start_time || !end_time || !duration_in_sec || !current_quality_size) {
+            return current_quality_size || 0;
         }
-    }, 1000);
-});
+
+        const startSec = timeStrToSeconds(start_time);
+        const endSec = timeStrToSeconds(end_time);
+
+        if (startSec >= endSec) return current_quality_size;
+
+        const clipDuration = endSec - startSec;
+        const ratio = clipDuration / duration_in_sec;
+
+        return Math.round(current_quality_size * ratio * 100) / 100;
+    }
+
+    // Preload optimization - prefetch when user starts typing
+    let typingTimer;
+    urlPaste.addEventListener('input', function () {
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => {
+            const url = urlPaste.value.trim();
+            const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+            if (youtubeRegex.test(url)) {
+                // Prefetch DNS resolution
+                const link = document.createElement('link');
+                link.rel = 'dns-prefetch';
+                link.href = '//www.youtube.com';
+                document.head.appendChild(link);
+            }
+        }, 1000);
+    });
