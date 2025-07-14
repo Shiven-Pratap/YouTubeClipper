@@ -23,8 +23,13 @@ body {
 }
 
 nav {
-    padding: 7px;
+    padding: 10px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
 }
+
 
 .logo {
     display: flex;
@@ -61,6 +66,9 @@ input:focus {
     justify-content: center;
     align-items: center;
     color: whitesmoke;
+}
+.main h2{
+    color: #fb030f;
 }
 
 
@@ -250,6 +258,7 @@ input:focus {
     background-color: rgba(95, 132, 207, 0.533);
     color: whitesmoke;
     transition: 0.4s;
+    cursor: pointer;
 }
 
 @media (max-width: 768px) {
@@ -293,3 +302,69 @@ input:focus {
 }
 
 
+.user-section {
+    display: flex;
+    align-items: center;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.welcome-text {
+    padding:10px 10px 10px 10px;
+    color: whitesmoke;
+    font-size: 15px;
+    font-weight: bold;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(1px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+}
+
+.logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #ff4757;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.logout-btn:hover {
+    background-color: #fb030f;
+    box-shadow: 0 0 5px;
+    transition: 0.4s;
+}
+
+
+.signUp-btn{
+    padding:12px 12px 12px 12px;
+    color: whitesmoke;
+    font-size: 17px;
+    font-weight: bold;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(1px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+}
+.signUp-btn a{
+    text-decoration: none;
+    color: whitesmoke;
+}
+.signUp-btn:hover{
+    box-shadow: 0 0 5px;
+    background-color: rgba(95, 132, 207, 0.533);
+    color: whitesmoke;
+    transition: 0.4s;
+    cursor: pointer;
+}

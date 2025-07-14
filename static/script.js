@@ -88,7 +88,7 @@ btn.addEventListener('click', function (e) {
                 document.body.removeChild(a);
 
                 const successMsg = document.createElement("div");
-                successMsg.textContent = "✅ Download started!";
+                successMsg.textContent = "✅ Download Completed!";
                 successMsg.style.position = "fixed";
                 successMsg.style.top = "20px";
                 successMsg.style.left = "50%";
@@ -354,10 +354,10 @@ function estimateClippedSize(startTime, endTime, fullDurationSec, fullSizeMB) {
                     }, 50);
                 }
 
-                // If sizes were estimated, show a note
+                
                 if (data.sizes_estimated) {
                     console.log("Sizes are estimated, real sizes will be calculated in background");
-                    // You could add a small indicator here
+                    
                 }
 
             } catch (error) {
@@ -400,7 +400,6 @@ function estimateClippedSize(startTime, endTime, fullDurationSec, fullSizeMB) {
         return Math.round(current_quality_size * ratio * 100) / 100;
     }
 
-    // Preload optimization - prefetch when user starts typing
     let typingTimer;
     urlPaste.addEventListener('input', function () {
         clearTimeout(typingTimer);
@@ -408,7 +407,6 @@ function estimateClippedSize(startTime, endTime, fullDurationSec, fullSizeMB) {
             const url = urlPaste.value.trim();
             const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
             if (youtubeRegex.test(url)) {
-                // Prefetch DNS resolution
                 const link = document.createElement('link');
                 link.rel = 'dns-prefetch';
                 link.href = '//www.youtube.com';
@@ -416,3 +414,9 @@ function estimateClippedSize(startTime, endTime, fullDurationSec, fullSizeMB) {
             }
         }, 1000);
     });
+
+    function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '/logout';
+            }
+        }

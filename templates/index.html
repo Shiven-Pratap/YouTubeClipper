@@ -18,6 +18,25 @@
             <span><img src="static/icon.png" width="55px" alt=""></span>
             <span class="logoName">VidFlex</span>
         </div>
+        <!-- <div class="login">
+            <button class="signUp-btn" id="log-in"><a href="/login">Login</a></button>
+            <button class="signUp-btn" id="sign-in"><a href="/login">Register</a></button>
+        </div> -->
+        <div class="user-section">
+            {% if logged_in %}
+                <div class="user-info">
+                    <span class="welcome-text">Welcome, {{ user_name }}!</span>
+                    <button class="logout-btn" onclick="logout()">
+                        <i class='bx bx-log-out'></i> Logout
+                    </button>
+                </div>
+            {% else %}
+                <div class="login">
+                    <button class="signUp-btn" id="log-in"><a href="/login">Login</a></button>
+                    <button class="signUp-btn" id="sign-in"><a href="/login">Register</a></button>
+                </div>
+            {% endif %}
+        </div>
     </nav>
     <div class="main">
         <h2>Welcome To Youtube video downloader</h2>
@@ -47,7 +66,6 @@
                     <div class="quality-card" data-quality="480p">480p</div>
                     <div class="quality-card" data-quality="360p">360p</div>
                 </div>
-                <!-- <button class="btn">Download</button> -->
                 <button class="btn" id="downloadBtn">
                     <span id="btnText">Download</span>
                     <div class="loader" id="spinner"></div>
@@ -60,7 +78,5 @@
     </div>
 </body>
 <script src="{{ url_for('static', filename='script.js') }}"></script>
-
-
 
 </html>

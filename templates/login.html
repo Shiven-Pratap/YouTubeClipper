@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="{{ url_for('static', filename='loginstyle.css') }}">
+    <title>VidFlex-Login</title>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="form-header">
+            <div class="titles">
+                <div class="title-login">Login</div>
+                <div class="title-register">Register</div>
+            </div>
+        </div>
+        <!-- LOGIN FORM -->
+        <form action="/login" method="POST" class="login-form" autocomplete="off">
+            <input type="hidden" name="form_type" value="login">
+            <div class="input-box">
+                <input type="email" name="email" class="input-field" id="log-email" placeholder=" " required>
+                <label for="log-email" class="label">Email</label>
+                <i class='bx bx-envelope icon'></i>
+            </div>
+            <div class="input-box">
+                <input type="password" name="password" class="input-field" id="log-pass" placeholder=" " required>
+                <label for="log-pass" class="label">Password</label>
+                <i class='bx bx-lock-alt icon'></i>
+            </div>
+            <div class="form-cols">
+                <div class="col-1"></div>
+                <!-- <div class="col-2">
+                    <a href="#">Forgot password?</a>
+                </div> -->
+            </div>
+            <div class="input-box">
+                <button class="btn-submit" id="SignInBtn">Sign In <i class='bx bx-log-in'></i></button>
+            </div>
+            <div class="switch-form">
+                <span>Don't have an account? <a onclick="registerFunction()">Register</a></span>
+            </div>
+        </form>
+
+
+        <!-- REGISTER FORM -->
+        <form action="/login" method="POST" class="register-form" autocomplete="off">
+            <input type="hidden" name="form_type" value="register">
+            <div class="input-box">
+                <input type="text" name="name" class="input-field" id="reg-name" placeholder=" " required>
+                <label for="reg-name" class="label">Username</label>
+                <i class='bx bx-user icon'></i>
+            </div>
+            <div class="input-box">
+                <input type="email" name="email" class="input-field" id="reg-email" placeholder=" " required>
+                <label for="reg-email" class="label">Email</label>
+                <i class='bx bx-envelope icon'></i>
+            </div>
+            <div class="input-box">
+                <input type="password" name="password" class="input-field" id="reg-pass" placeholder=" " required>
+                <label for="reg-pass" class="label">Password</label>
+                <i class='bx bx-lock-alt icon'></i>
+            </div>
+            <div class="form-cols">
+                <div class="col-1">
+                    <input type="checkbox" id="agree">
+                    <label for="agree"> I agree to terms & conditions</label>
+                </div>
+                <div class="col-2"></div>
+            </div>
+            <div class="input-box">
+                <button class="btn-submit" id="SignUpBtn">Sign Up <i class='bx bx-user-plus'></i></button>
+            </div>
+            <div class="switch-form">
+                <span>Already have an account? <a  onclick="loginFunction()">Login</a></span>
+            </div>
+        </form>
+    </div>
+
+    <script src="{{ url_for('static', filename='loginscript.js') }}"></script>
+    <script>
+        window.addEventListener("DOMContentLoaded", function () {
+            {% if registered %}
+            alert("Registered successfully!");
+            registerFunction();  // Hide register form if visible
+            loginFunction();     // Show login form
+            {% elif error %}
+            alert("{{ error }}");
+            {% endif %}
+        });
+
+    </script>
+
+    {% if login_failed %}
+    <script>
+        alert("Email or password incorrect");
+    </script>
+    {% endif %}
+
+
+</body>
+
+</html>

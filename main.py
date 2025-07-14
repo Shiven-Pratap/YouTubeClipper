@@ -1,4 +1,4 @@
-from flask import Flask, render_template,request,jsonify,send_from_directory,after_this_request
+from flask import Flask, render_template,request,jsonify,send_from_directory,after_this_request,redirect, session, url_for
 import yt_dlp
 import uuid
 import os
@@ -8,15 +8,23 @@ from urllib.parse import urlparse, parse_qs
 import requests
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import sqlite3
+
 
 API_KEY = "AIzaSyD4vh70NXpfqTORTo9VZ8qKr9EB-lSEoSs"
 
 
 app = Flask(__name__)
+app.secret_key = 'VID-FLEX-APP-BY-SHIVENDRA-' 
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    # return render_template("index.html")
+    if 'logged_in' in session and session['logged_in']:
+        user_name = session.get('user_name')
+        return render_template("index.html", logged_in=True, user_name=user_name)
+    else:
+        return render_template("index.html", logged_in=False)
 
 def time_to_seconds(time_str):
     """Convert time string (HH:MM:SS or MM:SS) to seconds"""
@@ -112,7 +120,7 @@ def download_file(filename):
     return send_from_directory("downloads", filename, as_attachment=True)
 
 
-#-----------------------------------------------------
+
 
 def extract_video_id(url):
     parsed = urlparse(url)
@@ -272,10 +280,6 @@ def print_video_details(details):
     print(f"📖 Description: {details['description']}")
     print(f"🖼️  Thumbnail: {details['thumbnail_url']}")
     print("=" * 60)
-
-
-
-
 
 
 video_cache = {}
@@ -455,4 +459,103 @@ def metaDetaFast():
     return response_data
 
 
-app.run(debug=True)
+def insert_values(name, email, password):
+    query = """INSERT INTO DATA(NAME, EMAIL, PASSWORD) VALUES (?, ?, ?)"""
+    connection = sqlite3.connect("database.db")
+    cursor = connection.cursor()
+    try:
+        cursor.execute(query, (name, email, password))
+        connection.commit()
+    except sqlite3.IntegrityError as e:
+        print("Error:", e)
+    finally:
+        connection.close()
+
+
+def is_email_unique(email):
+    connection = sqlite3.connect("database.db")
+    cursor = connection.cursor()
+    cursor.execute("SELECT 1 FROM DATA WHERE EMAIL = ?", (email,))
+    result = cursor.fetchone()
+    connection.close()
+    return result is None
+
+def is_valid_login(email,password):
+    query="""SELECT PASSWORD FROM DATA WHERE EMAIL= (?)"""
+    connection=sqlite3.connect("database.db")
+    cursor=connection.cursor()
+    cursor.execute(query,(email,))
+    value=cursor.fetchone()
+    connection.close()
+    if value is None:
+        return False
+    return value[0] == password
+
+def get_user_name(email):
+    connection = sqlite3.connect("database.db")
+    cursor = connection.cursor()
+    query="""SELECT NAME FROM DATA WHERE EMAIL =(?)"""
+    cursor.execute(query,(email,))
+    value=cursor.fetchone()
+    connection.close()
+    return value[0]
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        form_type = request.form["form_type"]
+        if form_type == "register":
+            name = request.form["name"]
+            email = request.form["email"].lower()
+            password = request.form["password"]
+            if not is_email_unique(email):
+                return render_template("login.html", error="Email already registered")
+
+            insert_values(name, email, password)
+            return render_template("login.html", registered=True)
+        else:
+            email = request.form["email"].lower()
+            password = request.form["password"]
+            if is_valid_login(email,password):# check these lines of code
+                user_name = get_user_name(email)  # You'll need to implement this function
+                print(user_name)
+                
+                # Set session variables
+                session['logged_in'] = True
+                session['user_email'] = email
+                session['user_name'] = user_name
+                
+                print('SUCCESSFUL')
+                return redirect("/")
+            else:
+                return render_template("login.html",login_failed=True)
+    return render_template("login.html")
+    
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")
+
+def create_connection():
+    connection = sqlite3.connect("database.db")
+    cursor = connection.cursor()
+    query = """CREATE TABLE IF NOT EXISTS DATA
+    (
+    NAME TEXT NOT NULL,
+    EMAIL TEXT NOT NULL PRIMARY KEY,
+    PASSWORD TEXT NOT NULL
+    )
+    """
+    cursor.execute(query)
+    connection.commit()
+    connection.close()
+
+def main():
+    create_connection()
+    app.run(debug=True)
+
+
+if __name__ == "__main__":
+    main()
