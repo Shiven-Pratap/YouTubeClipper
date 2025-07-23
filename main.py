@@ -58,6 +58,7 @@ def download_video(url, start_time, end_time, quality='best', output_path='downl
         'format': selected_format,
         'merge_output_format': 'mp4',
         'outtmpl': outtmpl,
+        'cookiefile': 'cookies.txt', 
         'download_ranges': yt_dlp.utils.download_range_func(None, [(start_seconds, end_seconds)]),
         'force_keyframes_at_cuts': True,
     }
