@@ -13,10 +13,9 @@ import sqlite3
 app = Flask(__name__)
 
 
-API_KEY = "AIzaSyD4vh70NXpfqTORTo9VZ8qKr9EB-lSEoSs"
+API_KEY = os.environ.get("API_KEY")
+app.secret_key = os.environ.get("SECRET_KEY")
 
-
-app.secret_key = 'VID-FLEX-APP-BY-SHIVENDRA-' 
 
 @app.route("/")
 def home():
