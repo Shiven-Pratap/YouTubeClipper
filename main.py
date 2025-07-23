@@ -16,6 +16,14 @@ app = Flask(__name__)
 API_KEY = os.environ.get("API_KEY")
 app.secret_key = os.environ.get("SECRET_KEY")
 
+cookies_content = os.environ.get("COOKIES_TXT")
+if cookies_content:
+    with open("cookies.txt", "w", encoding="utf-8") as f:
+        f.write(cookies_content)
+
+
+
+
 
 @app.route("/")
 def home():
@@ -299,6 +307,7 @@ def get_basic_info_fast(url):
         'extract_flat': False,
         'no_warnings': True,
         'ignoreerrors': True,
+        'cookiefile': 'cookies.txt',
         # Speed optimizations
         'socket_timeout': 10,
         'retries': 1,
