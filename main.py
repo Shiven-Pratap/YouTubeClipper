@@ -10,11 +10,12 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import sqlite3
 
+app = Flask(__name__)
+
 
 API_KEY = "AIzaSyD4vh70NXpfqTORTo9VZ8qKr9EB-lSEoSs"
 
 
-app = Flask(__name__)
 app.secret_key = 'VID-FLEX-APP-BY-SHIVENDRA-' 
 
 @app.route("/")
@@ -552,10 +553,7 @@ def create_connection():
     connection.commit()
     connection.close()
 
-def main():
-    create_connection()
-    app.run(debug=True)
-
 
 if __name__ == "__main__":
-    main()
+    create_connection()
+    app.run(debug=True)
